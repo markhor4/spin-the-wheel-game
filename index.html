@@ -11,6 +11,7 @@
       height: 100vh;
       overflow: hidden;
     }
+
     #left {
       flex: 2;
       background: #f3f4f6;
@@ -20,6 +21,7 @@
       justify-content: center;
       position: relative;
     }
+
     #right {
       flex: 1;
       background: #fff;
@@ -27,12 +29,15 @@
       overflow-y: auto;
       border-left: 2px solid #ccc;
     }
+
     canvas {
       border: 8px solid #333;
       border-radius: 50%;
       background: white;
       z-index: 1;
+      position: relative;
     }
+
     #pointer {
       width: 0;
       height: 0;
@@ -40,9 +45,12 @@
       border-right: 20px solid transparent;
       border-bottom: 30px solid red;
       position: absolute;
-      top: 60px;
-      z-index: 2;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
     }
+
     #spin-btn {
       margin-top: 20px;
       padding: 10px 30px;
@@ -53,6 +61,7 @@
       border-radius: 10px;
       cursor: pointer;
     }
+
     #result {
       margin-top: 20px;
       font-size: 24px;
@@ -61,22 +70,27 @@
       text-align: center;
       animation: pop 0.5s ease-in-out;
     }
+
     @keyframes pop {
       0% { transform: scale(0.8); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
+
     .segment {
       margin-bottom: 10px;
       display: flex;
       gap: 5px;
     }
+
     .segment input[type="text"] {
       width: 100px;
     }
+
     .preset-btn {
       margin: 5px 0;
       width: 100%;
     }
+
     h2 {
       margin-top: 0;
     }
