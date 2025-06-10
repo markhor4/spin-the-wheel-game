@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spin the Wheel - Advanced Customizer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #left {
+      flex: 2;
+      background: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #right {
+      flex: 1;
+      background: #fff;
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #ccc;
+    }
+    canvas {
+      border: 8px solid #333;
+      border-radius: 50%;
+      background: white;
+    }
+    #spin-btn {
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 20px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .segment {
+      margin-bottom: 10px;
+      display: flex;
+      gap: 5px;
+    }
+    .segment input[type="text"] {
+      width: 100px;
+    }
+    .preset-btn {
+      margin: 5px 0;
+      width: 100%;
+    }
+    h2 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="left">
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <button id="spin-btn">SPIN</button>
+    <div id="result"></div>
+  </div>
+
+  <div id="right">
+    <h2>🎛 Customize Wheel</h2>
+    <div id="segments-editor"></div>
+    <button onclick="addSegment()">+ Add Segment</button>
+    <button onclick="resetDefault()">Reset</button>
+    <hr>
+    <h3>💾 Save/Load Presets</h3>
+    <input type="text" id="preset-name" placeholder="Preset name" />
+    <button onclick="savePreset()">Save Preset</button>
+    <div id="presets-list"></div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    let segments = [];
+    let angle = 0;
+    let spinning = false;
+
+    function defaultSegments() {
+      return Array.from({ length: 10 }, (_, i) => ({
+        text: `Prize ${i + 1}`,
+        color: `hsl(${i * 36}, 80%, 70%)`
+      }));
+    }
+
+    function drawWheel() {
+      const segAngle = 2 * Math.PI / segments.length;
+      ctx.clearRect(0, 0, 400, 400);
+      segments.forEach((seg, i) => {
+        ctx.beginPath();
+        ctx.moveTo(200, 200);
+        ctx.arc(200, 200, 200, i * segAngle, (i + 1) * segAngle);
+        ctx.fillStyle = seg.color;
+        ctx.fill();
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(i * segAngle + segAngle / 2);
+        ctx.fillStyle = "#000";
+        ctx.font = "16px sans-serif";
+        ctx.fillText(seg.text, 90, 0);
+        ctx.restore();
+      });
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      const randDeg = 360 * 5 + Math.floor(Math.random() * 360);
+      const duration = 4000;
+      const start = performance.now();
+
+      function animate(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        angle = randDeg * easeOut(progress);
+        canvas.style.transform = `rotate(${angle}deg)`;
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          const normalized = (angle % 360 + 360) % 360;
+          const index = segments.length - 1 - Math.floor(normalized / (360 / segments.length));
+          document.getElementById("result").innerText = `🎉 You got: ${segments[index].text}!`;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function easeOut(t) {
+      return t * (2 - t);
+    }
+
+    document.getElementById("spin-btn").onclick = spinWheel;
+
+    function renderEditor() {
+      const editor = document.getElementById("segments-editor");
+      editor.innerHTML = '';
+      segments.forEach((seg, index) => {
+        const div = document.createElement("div");
+        div.className = "segment";
+        div.innerHTML = `
+          <input type="text" value="${seg.text}" onchange="updateText(${index}, this.value)" />
+          <input type="color" value="${seg.color}" onchange="updateColor(${index}, this.value)" />
+          <button onclick="removeSegment(${index})">🗑</button>
+        `;
+        editor.appendChild(div);
+      });
+    }
+
+    function updateText(index, text) {
+      segments[index].text = text;
+      drawWheel();
+    }
+
+    function updateColor(index, color) {
+      segments[index].color = color;
+      drawWheel();
+    }
+
+    function addSegment() {
+      segments.push({ text: `Prize ${segments.length + 1}`, color: "#cccccc" });
+      renderEditor();
+      drawWheel();
+    }
+
+    function removeSegment(index) {
+      if (segments.length <= 2) return alert("Need at least 2 segments!");
+      segments.splice(index, 1);
+      renderEditor();
+      drawWheel();
+    }
+
+    function resetDefault() {
+      segments = defaultSegments();
+      renderEditor();
+      drawWheel();
+    }
+
+    function savePreset() {
+      const name = document.getElementById("preset-name").value.trim();
+      if (!name) return alert("Enter a name for the preset.");
+      localStorage.setItem(`preset_${name}`, JSON.stringify(segments));
+      loadPresets();
+    }
+
+    function loadPresets() {
+      const list = document.getElementById("presets-list");
+      list.innerHTML = '';
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("preset_")) {
+          const name = key.replace("preset_", "");
+          const btn = document.createElement("button");
+          btn.className = "preset-btn";
+          btn.textContent = `🔄 Load: ${name}`;
+          btn.onclick = () => {
+            const data = localStorage.getItem(key);
+            if (data) {
+              segments = JSON.parse(data);
+              renderEditor();
+              drawWheel();
+            }
+          };
+
+          const del = document.createElement("button");
+          del.className = "preset-btn";
+          del.textContent = `🗑 Delete: ${name}`;
+          del.onclick = () => {
+            localStorage.removeItem(key);
+            loadPresets();
+          };
+
+          list.appendChild(btn);
+          list.appendChild(del);
+        }
+      });
+    }
+
+    // Initialize
+    segments = defaultSegments();
+    renderEditor();
+    drawWheel();
+    loadPresets();
+  </script>
+</body>
+</html>
