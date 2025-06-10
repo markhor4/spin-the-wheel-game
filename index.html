@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Spin the Wheel - Advanced</title>
+  <title>Spin the Wheel</title>
   <style>
     body {
       margin: 0;
@@ -36,19 +36,6 @@
       background: white;
       z-index: 1;
       position: relative;
-    }
-
-    #pointer {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
-      position: absolute;
-      top: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
     }
 
     #spin-btn {
@@ -98,7 +85,6 @@
 </head>
 <body>
   <div id="left">
-    <div id="pointer"></div>
     <canvas id="wheel" width="400" height="400"></canvas>
     <button id="spin-btn">SPIN</button>
     <div id="result"></div>
@@ -117,7 +103,6 @@
     <div id="presets-list"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
@@ -172,7 +157,6 @@
           const index = segments.length - 1 - Math.floor(normalized / (360 / segments.length));
           const winner = segments[index].text;
           document.getElementById("result").innerText = `🎉 You got: ${winner}!`;
-          confetti();
           document.getElementById("win-sound").play();
         }
       }
